@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark" data-accent="green">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SpiderScann — by Anony'x</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ag:#00e5aa;--ab:#4d9fff;--ap:#a855f7;--ao:#ff7043;--ar2c:#ff4560;}
+[data-theme="dark"]{--bg:#070b0f;--bg2:#0d1117;--bg3:#151b23;--bg4:#1e2632;--bd:rgba(255,255,255,.08);--bd2:rgba(255,255,255,.14);--tx:#e8edf3;--tx2:#8b9ab0;--tx3:#4a5568;--ok:#22c55e;--er:#ef4444;--wn:#f59e0b;--inf:#60a5fa;--sh:0 8px 32px rgba(0,0,0,.5);}
+[data-theme="light"]{--bg:#f0f4f8;--bg2:#fff;--bg3:#e8edf5;--bg4:#dde3ed;--bd:rgba(0,0,0,.08);--bd2:rgba(0,0,0,.14);--tx:#1a2035;--tx2:#4a5568;--tx3:#a0aec0;--ok:#16a34a;--er:#dc2626;--wn:#d97706;--inf:#2563eb;--sh:0 8px 32px rgba(0,0,0,.12);}
+[data-accent="green"]{--a:var(--ag);--arc:0,229,170;}
+[data-accent="blue"]{--a:var(--ab);--arc:77,159,255;}
+[data-accent="purple"]{--a:var(--ap);--arc:168,85,247;}
+[data-accent="orange"]{--a:var(--ao);--arc:255,112,67;}
+[data-accent="red"]{--a:var(--ar2c);--arc:255,69,96;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 10%,rgba(var(--arc),.06) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 10% 80%,rgba(var(--arc),.04) 0%,transparent 60%);}
+.app{display:flex;min-height:100vh;position:relative;z-index:1;}
+/* SIDEBAR */
+.sidebar{width:240px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{width:3px;}.sidebar::-webkit-scrollbar-thumb{background:var(--a);border-radius:2px;}
+.brand{padding:18px 16px 14px;border-bottom:1px solid var(--bd);}
+.brand-logo{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+.spider-icon{width:36px;height:36px;background:rgba(var(--arc),.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid rgba(var(--arc),.25);animation:breathe 3s ease-in-out infinite;flex-shrink:0;}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(var(--arc),.3)}50%{box-shadow:0 0 0 6px rgba(var(--arc),0)}}
+.brand-name{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;}
+.brand-name span{color:var(--a);}
+.brand-tag{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--tx3);font-family:'JetBrains Mono',monospace;}
+.nav-sect{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--tx3);padding:12px 16px 5px;font-family:'JetBrains Mono',monospace;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--tx2);border:none;background:none;width:100%;text-align:left;border-left:3px solid transparent;transition:all .15s;font-family:'Space Grotesk',sans-serif;}
+.nav-item:hover{color:var(--tx);background:rgba(var(--arc),.05);}
+.nav-item.active{color:var(--a);background:rgba(var(--arc),.08);border-left-color:var(--a);}
+.nav-item svg{width:14px;height:14px;flex-shrink:0;}
+.nav-badge{margin-left:auto;font-size:8px;padding:2px 6px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-weight:600;}
+.b-off{background:rgba(34,197,94,.12);color:var(--ok);}
+.b-on{background:rgba(96,165,250,.12);color:var(--inf);}
+.sb-foot{margin-top:auto;padding:14px 16px;border-top:1px solid var(--bd);}
+.ip-box{background:rgba(var(--arc),.06);border:1px solid rgba(var(--arc),.2);border-radius:8px;padding:10px 12px;}
+.ip-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--tx3);margin-bottom:4px;font-family:'JetBrains Mono',monospace;}
+.ip-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--a);}
+.ip-sub{font-size:10px;color:var(--tx2);margin-top:3px;}
+.ndot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--tx3);margin-right:5px;transition:background .3s;}
+.ndot.on{background:var(--ok);box-shadow:0 0 5px var(--ok);}
+.ndot.off{background:var(--er);}
+/* MAIN */
+.main{flex:1;padding:22px;overflow:auto;min-width:0;}
+.page{display:none;animation:fadeIn .25s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* COMPONENTS */
+.ph{margin-bottom:18px;}
+.pt{font-size:21px;font-weight:700;display:flex;align-items:center;gap:9px;}
+.pt svg{color:var(--a);}
+.pd{font-size:11.5px;color:var(--tx2);margin-top:3px;font-family:'JetBrains Mono',monospace;}
+.server-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(var(--arc),.1);border:1px solid rgba(var(--arc),.25);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--a);font-family:'JetBrains Mono',monospace;margin-top:6px;}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--a);animation:breathe 1.5s infinite;}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:var(--sh);}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bd);background:var(--bg3);gap:8px;flex-wrap:wrap;}
+.ct{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px;}
+.ct svg{width:13px;height:13px;color:var(--a);flex-shrink:0;}
+.cb{padding:15px;}
+label.lbl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--tx2);margin-bottom:6px;font-family:'JetBrains Mono',monospace;}
+input[type=text],textarea,select{width:100%;background:var(--bg3);border:1px solid var(--bd2);border-radius:8px;padding:10px 12px;color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:all .15s;}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(var(--arc),.1);}
+select option{background:var(--bg3);}
+textarea{resize:vertical;min-height:105px;line-height:1.6;}
+.ir{display:grid;gap:10px;margin-bottom:10px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 17px;border-radius:8px;border:none;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:600;transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+.btn svg{width:13px;height:13px;}
+.bp{background:var(--a);color:#000;}
+.bp:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.bg{background:var(--bg3);color:var(--tx2);border:1px solid var(--bd2);}
+.bg:hover{color:var(--tx);border-color:var(--a);}
+.bd2x{background:rgba(239,68,68,.1);color:var(--er);border:1px solid rgba(239,68,68,.25);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none !important;}
+.br{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.prog{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin:10px 0;}
+.pb{height:100%;background:linear-gradient(90deg,var(--a),rgba(var(--arc),.4));width:0%;transition:width .3s;border-radius:2px;}
+.term{background:#020609;border:1px solid var(--bd);border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.7;min-height:175px;max-height:310px;overflow-y:auto;position:relative;}
+.tbar{position:absolute;top:0;left:0;right:0;background:#0d1117;border-bottom:1px solid var(--bd);padding:5px 12px;display:flex;align-items:center;gap:5px;}
+.tdot{width:8px;height:8px;border-radius:50%;}
+.ti{padding-top:24px;}
+.tok{color:#22c55e;}.ter{color:#ef4444;}.twn{color:#f59e0b;}.tin{color:#60a5fa;}.tdm{color:#4a5568;}.tmt{color:#6b7280;}.tac{color:var(--a);}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:11px;min-width:320px;}
+th{text-align:left;padding:8px 10px;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--tx3);border-bottom:1px solid var(--bd);background:var(--bg3);font-family:'JetBrains Mono',monospace;}
+td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--tx2);}
+td:first-child{color:var(--tx);font-family:'JetBrains Mono',monospace;}
+tr:hover td{background:rgba(var(--arc),.03);}
+.bk{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;}
+.bok{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.25);}
+.ber{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25);}
+.bin{background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.25);}
+.bwn{background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.25);}
+.mtr{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:13px;position:relative;overflow:hidden;}
+.mtr::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--a),transparent);}
+.ml{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--tx3);margin-bottom:6px;font-family:'JetBrains Mono',monospace;}
+.mv{font-size:17px;font-weight:700;color:var(--tx);word-break:break-all;}
+.ms2{font-size:10px;color:var(--tx2);margin-top:3px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.sep{height:1px;background:var(--bd);margin:14px 0;}
+.wr{display:grid;grid-template-columns:130px 1fr;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px;align-items:start;}
+.wk{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);font-family:'JetBrains Mono',monospace;padding-top:2px;}
+.wv{color:var(--tx);word-break:break-all;font-family:'JetBrains Mono',monospace;font-size:11px;}
+.dr{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap;}
+.dt{min-width:50px;text-align:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.25);}
+.dv{color:var(--tx);font-size:11px;flex:1;font-family:'JetBrains Mono',monospace;word-break:break-all;}
+.dttl{font-size:9px;color:var(--tx3);white-space:nowrap;}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin:10px 0;}
+.pchip{background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.pchip:hover{border-color:var(--a);}
+.pchip.sel{background:rgba(var(--arc),.1);border-color:var(--a);color:var(--a);}
+.pn{font-weight:700;font-size:13px;display:block;font-family:'JetBrains Mono',monospace;}
+.ps2{font-size:8.5px;color:var(--tx3);display:block;margin-top:2px;}
+.prow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.pp{font-weight:700;width:50px;color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:12px;}
+.psvc{color:var(--tx2);flex:1;font-size:11px;}
+.sb{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 14px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;margin-top:10px;font-size:11px;}
+.ss{display:flex;align-items:center;gap:6px;}
+.ss .v{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;}
+.sr{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;border:3px solid var(--bd);flex-shrink:0;}
+.sl{font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace;}
+.cp{background:none;border:1px solid var(--bd);border-radius:5px;color:var(--tx2);cursor:pointer;padding:3px 9px;font-size:10px;font-family:'JetBrains Mono',monospace;transition:all .15s;}
+.cp:hover{border-color:var(--a);color:var(--a);}
+.off-badge{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--ok);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.thm-btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;border:2px solid var(--bd);background:var(--bg3);cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;color:var(--tx2);}
+.thm-btn.active{border-color:var(--a);color:var(--a);background:rgba(var(--arc),.08);}
+.acc-btn{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .15s;}
+.acc-btn.active{border-color:white;transform:scale(1.18);}
+.ahero{background:linear-gradient(135deg,rgba(var(--arc),.08),transparent);border:1px solid rgba(var(--arc),.2);border-radius:12px;padding:22px;margin-bottom:14px;text-align:center;}
+.an{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;}
+.an span{color:var(--a);}
+.adesc{font-size:12.5px;color:var(--tx2);margin-top:10px;line-height:1.7;max-width:480px;margin-left:auto;margin-right:auto;}
+.crd{background:var(--bg3);border:1px solid var(--bd);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.wl{margin-left:auto;display:inline-flex;align-items:center;gap:7px;background:#25d366;color:#fff;padding:9px 15px;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:600;transition:filter .15s;}
+.wl:hover{filter:brightness(1.1);}
+.gc{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.ghd{padding:12px 15px;background:var(--bg3);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px;justify-content:space-between;}
+.garr{transition:transform .2s;color:var(--tx3);}
+.gb{padding:15px;display:none;font-size:12px;line-height:1.8;color:var(--tx2);}
+.gb.open{display:block;}
+.gb strong{color:var(--tx);}
+.gb code{background:var(--bg3);border:1px solid var(--bd);border-radius:4px;padding:1px 6px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--a);}
+.gb ul{padding-left:16px;margin:6px 0;}
+.gb li{margin-bottom:3px;}
+/* MOBILE TOPBAR */
+.mtop{display:none;position:sticky;top:0;z-index:100;background:rgba(7,11,15,.96);border-bottom:1px solid var(--bd);backdrop-filter:blur(12px);padding:10px 13px;align-items:center;justify-content:space-between;}
+[data-theme="light"] .mtop{background:rgba(240,244,248,.96);}
+.mbr{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;display:flex;align-items:center;gap:7px;}
+.mbr span{color:var(--a);}
+.mst{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);background:var(--bg3);border:1px solid var(--bd);border-radius:20px;padding:4px 10px;}
+.ibtn{width:33px;height:33px;border-radius:8px;background:var(--bg3);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--tx2);}
+.ibtn:hover,.ibtn svg{width:15px;height:15px;}
+/* BOTTOM NAV */
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(7,11,15,.97);border-top:1px solid var(--bd);backdrop-filter:blur(14px);z-index:200;padding-bottom:env(safe-area-inset-bottom,0px);}
+[data-theme="light"] .bnav{background:rgba(240,244,248,.97);}
+.bni{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 3px 4px;}
+.bni::-webkit-scrollbar{display:none;}
+.bn{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:55px;padding:7px 4px;border:none;background:none;color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:8px;cursor:pointer;transition:color .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.bn svg{width:19px;height:19px;transition:all .15s;}
+.bn.active{color:var(--a);}
+.bn.active svg{filter:drop-shadow(0 0 4px rgba(var(--arc),.7));transform:translateY(-1px);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .8s linear infinite;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--a);}
+/* RESPONSIVE */
+@media(max-width:840px){
+  .sidebar{display:none;}
+  .mtop{display:flex;}
+  .bnav{display:block;}
+  .main{padding:11px 11px 78px;}
+  .g2,.g4{grid-template-columns:1fr 1fr;}
+  .pt{font-size:18px;}
+}
+@media(max-width:500px){
+  .main{padding:10px 9px 72px;}
+  .g2,.g4{grid-template-columns:1fr;}
+  .g4.tc{grid-template-columns:1fr 1fr;}
+  .pt{font-size:16px;}
+  .cb{padding:12px;}
+  .ch{padding:10px 12px;}
+  .btn{width:100%;font-size:12px;}
+  .br{flex-direction:column;gap:6px;}
+  .br .bg,.br .cp{width:auto;}
+  textarea{min-height:90px;}
+  .wr{grid-template-columns:1fr;gap:1px;padding:8px 0;}
+  .mtr{padding:11px 10px;}
+  .mv{font-size:14px;}
+  .pgrid{grid-template-columns:repeat(auto-fill,minmax(60px,1fr));}
+  .term{font-size:10.5px;min-height:145px;max-height:230px;}
+  table{font-size:10px;}
+  th,td{padding:7px 6px;}
+  .crd{flex-direction:column;text-align:center;}
+  .wl{margin-left:0;width:100%;justify-content:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE TOPBAR -->
+<div class="mtop">
+  <div class="mbr">🕷 Spider<span>Scann</span></div>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <div class="mst"><span class="ndot" id="md"></span><span id="mip">...</span></div>
+    <div class="ibtn" onclick="showPage('settings',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav"><div class="bni">
+  <button class="bn active" onclick="showPage('dashboard',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Board</button>
+  <button class="bn" onclick="showPage('hosts',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Hosts</button>
+  <button class="bn" onclick="showPage('ports',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Ports</button>
+  <button class="bn" onclick="showPage('dns',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>DNS</button>
+  <button class="bn" onclick="showPage('ip',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>GeoIP</button>
+  <button class="bn" onclick="showPage('ssl',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>SSL</button>
+  <button class="bn" onclick="showPage('ping',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Ping</button>
+  <button class="bn" onclick="showPage('whois',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>WHOIS</button>
+  <button class="bn" onclick="showPage('offline',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6s4-2 11-2 11 2 11 2"/><path d="M5 10s2.5-1.5 7-1.5S19 10 19 10"/><path d="M8.5 13.5S10 12.5 12 12.5s3.5 1 3.5 1"/><circle cx="12" cy="17" r="1"/></svg>Offline</button>
+  <button class="bn" onclick="showPage('guide',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Guide</button>
+  <button class="bn" onclick="showPage('about',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>About</button>
+  <button class="bn" onclick="showPage('settings',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config</button>
+</div></div>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-logo"><div class="spider-icon">🕷</div><div><div class="brand-name">Spider<span>Scann</span></div><div class="brand-tag">Network Diagnostic</div></div></div>
+  </div>
+  <div class="nav-sect">Online (via Serveur)</div>
+  <button class="nav-item active" onclick="showPage('dashboard',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</button>
+  <button class="nav-item" onclick="showPage('hosts',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Host Checker<span class="nav-badge b-on">TCP</span></button>
+  <button class="nav-item" onclick="showPage('ports',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Port Scanner<span class="nav-badge b-on">TCP</span></button>
+  <button class="nav-item" onclick="showPage('dns',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>DNS Lookup<span class="nav-badge b-on">DNS</span></button>
+  <button class="nav-item" onclick="showPage('ip',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>IP / GeoIP<span class="nav-badge b-on">API</span></button>
+  <button class="nav-item" onclick="showPage('ssl',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>SSL / TLS<span class="nav-badge b-on">CERT</span></button>
+  <button class="nav-item" onclick="showPage('ping',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Ping &amp; Latence<span class="nav-badge b-on">TCP</span></button>
+  <button class="nav-item" onclick="showPage('whois',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>WHOIS<span class="nav-badge b-on">RDAP</span></button>
+  <div class="nav-sect">Offline</div>
+  <button class="nav-item" onclick="showPage('offline',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6s4-2 11-2 11 2 11 2"/><path d="M5 10s2.5-1.5 7-1.5S19 10 19 10"/><path d="M8.5 13.5S10 12.5 12 12.5s3.5 1 3.5 1"/><circle cx="12" cy="17" r="1"/></svg>Outils Offline<span class="nav-badge b-off">LOCAL</span></button>
+  <div class="nav-sect">Info</div>
+  <button class="nav-item" onclick="showPage('guide',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Guide Complet</button>
+  <button class="nav-item" onclick="showPage('about',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>À Propos</button>
+  <button class="nav-item" onclick="showPage('settings',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Paramètres</button>
+  <div class="sb-foot"><div class="ip-box"><div class="ip-lbl">Mon IP</div><div class="ip-val" id="sbip">...</div><div class="ip-sub"><span class="ndot" id="sbd"></span><span id="sbst">Vérification</span> · <span id="sbpg">—</span></div></div></div>
+</aside>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="ph">
+    <div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</div>
+    <div class="pd">// Vue réseau en temps réel</div>
+    <div class="server-badge"><span class="sdot"></span><span id="srv-status">Connexion serveur...</span></div>
+  </div>
+  <div class="g4 tc" style="margin-bottom:12px;">
+    <div class="mtr"><div class="ml">IP Publique</div><div class="mv" id="dip" style="font-size:12px">—</div></div>
+    <div class="mtr"><div class="ml">Pays / FAI</div><div class="mv" id="dco" style="font-size:11px">—</div></div>
+    <div class="mtr"><div class="ml">Latence serveur</div><div class="mv" id="dpg">—</div></div>
+    <div class="mtr"><div class="ml">ASN</div><div class="mv" id="dasn" style="font-size:12px">—</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Diagnostic rapide</div><button class="btn bp" id="dbtn" onclick="runDiag()" style="padding:6px 12px;font-size:11px;">▶ Lancer</button></div><div class="cb" style="padding:10px;"><div class="term" id="dout"><div class="tbar"><div class="tdot" style="background:#ff5f57"></div><div class="tdot" style="background:#ffbd2e"></div><div class="tdot" style="background:#28c840"></div></div><div class="ti"><span class="tdm">// Prêt — cliquez Lancer</span></div></div></div></div>
+    <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Architecture</div></div><div class="cb"><div style="font-size:11.5px;color:var(--tx2);line-height:1.8;margin-bottom:10px;"><strong style="color:var(--a)">SpiderScann v3.0</strong> — Architecture Frontend + Backend Node.js.<br>Toutes les requêtes réseau passent par le serveur Node.js — <strong style="color:var(--ok)">aucune limitation navigateur (CORS, ports bloqués...)</strong>.</div><div style="display:flex;flex-wrap:wrap;gap:5px;"><span class="bk bok">Host Checker</span><span class="bk bok">Port Scanner</span><span class="bk bok">DNS</span><span class="bk bok">GeoIP</span><span class="bk bok">SSL/TLS</span><span class="bk bok">Ping TCP</span><span class="bk bok">WHOIS</span><span class="bk bwn">CIDR</span><span class="bk bwn">Encodeur</span><span class="bk bwn">Hash</span></div></div></div>
+  </div>
+</div>
+
+<!-- HOST CHECKER -->
+<div class="page" id="page-hosts">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Host Checker</div><div class="pd">// Vérification HTTP/HTTPS réelle via serveur Node.js</div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Hosts à analyser</div><select id="hcpr" style="width:auto;padding:5px 8px;font-size:11px;"><option value="https">HTTPS</option><option value="http">HTTP</option><option value="both">Les deux</option></select></div><div class="cb"><label class="lbl">Un host par ligne (max 100)</label><textarea id="hch" placeholder="google.com&#10;github.com&#10;cloudflare.com&#10;192.168.1.1"></textarea><div class="prog" id="hcpw" style="display:none;"><div class="pb" id="hcpb"></div></div><div class="br"><button class="btn bp" onclick="runHC()" id="hcbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>Scanner</button><button class="btn bg" onclick="document.getElementById('hch').value='google.com\ngithub.com\ncloudflare.com\namazon.com\nmicrosoft.com'">Exemple</button><button class="btn bg" onclick="document.getElementById('hch').value='';document.getElementById('hcrc').style.display='none'">Reset</button></div></div></div>
+  <div class="card" id="hcrc" style="display:none;"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>Résultats</div><div style="display:flex;gap:6px;"><button class="cp" onclick="copyHC()">Copier OK</button><button class="cp" onclick="dlHC()">↓ .txt</button></div></div><div class="cb" style="padding:0;"><div class="tw"><table><thead><tr><th>Host</th><th>Proto</th><th>Status</th><th>Code</th><th>Temps</th></tr></thead><tbody id="hctb"></tbody></table></div></div><div style="padding:0 15px 13px;"><div class="sb" id="hcsm"></div></div></div>
+</div>
+
+<!-- PORT SCANNER -->
+<div class="page" id="page-ports">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Port Scanner</div><div class="pd">// Scan TCP réel via serveur Node.js — aucune limitation</div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Configuration</div></div><div class="cb"><div class="ir g2"><div><label class="lbl">Cible (host ou IP)</label><input type="text" id="psh" placeholder="example.com ou 192.168.1.1"></div><div><label class="lbl">Mode</label><select id="psm" onchange="document.getElementById('pscu').style.display=this.value==='custom'?'block':'none'"><option value="common">Ports communs (30)</option><option value="web">Web</option><option value="db">Bases de données</option><option value="mail">Mail</option><option value="custom">Personnalisé</option></select></div></div><div id="pscu" style="display:none;margin-bottom:10px;"><label class="lbl">Ports (ex: 80,443 ou 1-1000)</label><input type="text" id="pscp" placeholder="80,443,3000 ou 1-500"></div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--tx3);margin-bottom:8px;">Sélection rapide</div><div class="pgrid" id="psgr"></div><div class="prog" id="pspw" style="display:none;margin-top:10px;"><div class="pb" id="pspb"></div></div><div class="br" style="margin-top:14px;"><button class="btn bp" onclick="runPS()" id="psbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Scanner</button><button class="btn bg" onclick="document.getElementById('psh').value='';document.getElementById('psrc').style.display='none'">Reset</button></div></div></div>
+  <div class="card" id="psrc" style="display:none;"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Résultats — <span id="psrh" style="color:var(--a)"></span></div><button class="cp" onclick="copyPS()">Copier</button></div><div class="cb"><div id="psout"></div><div class="sb" id="pssm"></div></div></div>
+</div>
+
+<!-- DNS -->
+<div class="page" id="page-dns">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>DNS Lookup</div><div class="pd">// Résolution DNS complète via Node.js natif</div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>Requête DNS</div></div><div class="cb"><div class="ir g2"><div><label class="lbl">Domaine</label><input type="text" id="dnsh" placeholder="example.com"></div><div><label class="lbl">Type</label><select id="dnst"><option value="A">A — IPv4</option><option value="AAAA">AAAA — IPv6</option><option value="MX">MX — Mail</option><option value="TXT">TXT — SPF/DMARC</option><option value="NS">NS — Serveurs DNS</option><option value="CNAME">CNAME — Alias</option><option value="SOA">SOA — Authority</option><option value="ALL">ALL — Tous</option></select></div></div><div class="br"><button class="btn bp" onclick="runDNS()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Résoudre</button></div></div></div>
+  <div class="card" id="dnsrc" style="display:none;"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Enregistrements — <span id="dnsrh" style="color:var(--a)"></span></div></div><div class="cb"><div id="dnsout"></div></div></div>
+</div>
+
+<!-- IP INFO -->
+<div class="page" id="page-ip">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>IP / GeoIP Info</div><div class="pd">// Géolocalisation complète via serveur</div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Analyser une IP</div></div><div class="cb"><label class="lbl">Adresse IP (vide = votre IP)</label><input type="text" id="ipinp" placeholder="8.8.8.8 ou 1.1.1.1"><div class="br"><button class="btn bp" onclick="runIP()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Analyser</button><button class="btn bg" onclick="document.getElementById('ipinp').value='';runIP()">Ma propre IP</button></div></div></div>
+  <div class="card" id="iprc" style="display:none;"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>Informations GeoIP</div></div><div class="cb"><div id="ipout"></div></div></div>
+</div>
+
+<!-- SSL -->
+<div class="page" id="page-ssl">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>SSL / TLS Checker</div><div class="pd">// Analyse certificat et sécurité HTTPS</div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Analyser SSL</div></div><div class="cb"><label class="lbl">Domaine</label><input type="text" id="sslh" placeholder="example.com"><div class="br"><button class="btn bp" onclick="runSSL()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Analyser</button></div></div></div>
+  <div class="card" id="sslrc" style="display:none;"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Rapport SSL</div></div><div class="cb"><div id="sslout"></div></div></div>
+</div>
+
+<!-- PING -->
+<div class="page" id="page-ping">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Ping &amp; Latence</div><div class="pd">// Test TCP réel de latence et connectivité</div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Test latence</div></div><div class="cb"><div class="ir g2"><div><label class="lbl">Cible</label><input type="text" id="pgh" placeholder="google.com"></div><div><label class="lbl">Nombre</label><select id="pgc"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option></select></div></div><div class="br"><button class="btn bp" onclick="runPing()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Ping</button></div></div></div>
+  <div class="card" id="pgrc" style="display:none;"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Résultats Ping</div></div><div class="cb" style="padding:10px;"><div class="term" id="pgout"><div class="tbar"><div class="tdot" style="background:#ff5f57"></div><div class="tdot" style="background:#ffbd2e"></div><div class="tdot" style="background:#28c840"></div></div><div class="ti"></div></div><div class="g4 tc" style="margin-top:12px;"><div class="mtr"><div class="ml">Min</div><div class="mv" id="pgmn">—</div></div><div class="mtr"><div class="ml">Max</div><div class="mv" id="pgmx">—</div></div><div class="mtr"><div class="ml">Moyenne</div><div class="mv" id="pgav">—</div></div><div class="mtr"><div class="ml">Pertes</div><div class="mv" id="pgls">—</div></div></div></div></div>
+</div>
+
+<!-- WHOIS -->
+<div class="page" id="page-whois">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>WHOIS</div><div class="pd">// Registrar, propriétaire, dates expiration</div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Requête WHOIS</div></div><div class="cb"><label class="lbl">Domaine</label><input type="text" id="whh" placeholder="example.com"><div class="br"><button class="btn bp" onclick="runWHOIS()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Rechercher</button></div></div></div>
+  <div class="card" id="whrc" style="display:none;"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>WHOIS — <span id="whrh" style="color:var(--a)"></span></div></div><div class="cb"><div id="whout"></div></div></div>
+</div>
+
+<!-- OFFLINE -->
+<div class="page" id="page-offline">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6s4-2 11-2 11 2 11 2"/><path d="M5 10s2.5-1.5 7-1.5S19 10 19 10"/><path d="M8.5 13.5S10 12.5 12 12.5s3.5 1 3.5 1"/><circle cx="12" cy="17" r="1"/></svg>Outils Offline</div><div class="pd">// 100% sans connexion internet</div></div>
+  <div class="off-badge">✓ Ces outils fonctionnent sans aucune connexion réseau</div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>Calculateur CIDR</div><span class="bk bok" style="font-size:9px;">OFFLINE</span></div><div class="cb"><div class="ir g2"><div><label class="lbl">IP</label><input type="text" id="cip" placeholder="192.168.1.0" oninput="calcCIDR()"></div><div><label class="lbl">Préfixe /</label><input type="text" id="cpfx" placeholder="24" oninput="calcCIDR()"></div></div><div id="cidrout"></div></div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>Analyseur IP</div><span class="bk bok" style="font-size:9px;">OFFLINE</span></div><div class="cb"><label class="lbl">Adresse IP</label><input type="text" id="ipvinp" placeholder="192.168.1.100" oninput="analyzeIP()"><div id="ipvout" style="margin-top:10px;"></div></div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Encodeur / Décodeur</div><span class="bk bok" style="font-size:9px;">OFFLINE</span></div><div class="cb"><div class="ir g2"><div><label class="lbl">Mode</label><select id="encm" onchange="runEncode()"><option value="b64e">Base64 Encoder</option><option value="b64d">Base64 Décoder</option><option value="urle">URL Encoder</option><option value="urld">URL Décoder</option><option value="hex">Texte → Hex</option><option value="hexd">Hex → Texte</option></select></div><div><label class="lbl">Entrée</label><input type="text" id="enci" placeholder="Texte..." oninput="runEncode()"></div></div><div id="encout"></div></div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>Générateur Hash SHA</div><span class="bk bok" style="font-size:9px;">OFFLINE</span></div><div class="cb"><label class="lbl">Texte</label><input type="text" id="hshi" placeholder="Mon texte secret..." oninput="runHash()"><div id="hshout" style="margin-top:10px;"></div></div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Référence Ports</div><span class="bk bok" style="font-size:9px;">OFFLINE</span></div><div class="cb"><label class="lbl">Rechercher</label><input type="text" id="prsi" placeholder="80 ou http..." oninput="searchPR()"><div id="prout" style="margin-top:10px;"></div></div></div>
+</div>
+
+<!-- GUIDE -->
+<div class="page" id="page-guide">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Guide Complet</div><div class="pd">// Documentation de toutes les fonctionnalités</div></div>
+  <div id="guidelist"></div>
+</div>
+
+<!-- ABOUT -->
+<div class="page" id="page-about">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>À Propos</div></div>
+  <div class="ahero"><span style="font-size:44px;display:block;margin-bottom:8px;">🕷</span><div class="an">Spider<span>Scann</span></div><div style="font-size:10px;color:var(--tx3);margin-top:3px;letter-spacing:1px;">VERSION 3.0 — FRONTEND + NODE.JS BACKEND</div><div class="adesc">SpiderScann est un outil professionnel de diagnostic réseau. L'architecture Frontend + Serveur Node.js élimine toutes les limitations du navigateur — scans TCP réels, DNS natif, pas de CORS.</div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Créateur</div></div><div class="cb"><div class="crd"><div style="width:50px;height:50px;border-radius:50%;background:rgba(var(--arc),.15);border:2px solid rgba(var(--arc),.3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👨‍💻</div><div><div style="font-weight:700;font-size:15px;">Anony'x</div><div style="font-size:11px;color:var(--tx2);margin-top:2px;">Développeur · Sécurité Réseau · Burkina Faso 🇧🇫</div><div style="font-size:10px;color:var(--tx3);margin-top:4px;font-family:'JetBrains Mono',monospace;">SpiderScann v3.0 · 2025</div></div><a href="https://wa.me/22603996469" target="_blank" class="wl"><svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>+226 03 99 64 69</a></div></div></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="ph"><div class="pt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Paramètres</div><div class="pd">// Personnalisation</div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg>Thème &amp; Couleurs</div></div><div class="cb">
+    <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:10px;">Mode</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+      <div class="thm-btn active" id="tdark" onclick="setTheme('dark')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Sombre</div>
+      <div class="thm-btn" id="tlight" onclick="setTheme('light')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>Clair</div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:10px;">Couleur accent</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div class="acc-btn active" data-acc="green" style="background:#00e5aa;" onclick="setAccent('green',this)"></div>
+      <div class="acc-btn" data-acc="blue" style="background:#4d9fff;" onclick="setAccent('blue',this)"></div>
+      <div class="acc-btn" data-acc="purple" style="background:#a855f7;" onclick="setAccent('purple',this)"></div>
+      <div class="acc-btn" data-acc="orange" style="background:#ff7043;" onclick="setAccent('orange',this)"></div>
+      <div class="acc-btn" data-acc="red" style="background:#ff4560;" onclick="setAccent('red',this)"></div>
+    </div>
+  </div></div>
+  <div class="card"><div class="ch"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>Infos App</div></div><div class="cb"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;line-height:2;"><div>App: <span style="color:var(--a)">SpiderScann v3.0</span></div><div>Créateur: <span style="color:var(--a)">Anony'x</span></div><div>WhatsApp: <span style="color:var(--a)">+226 03 99 64 69</span></div><div>Backend: <span style="color:var(--ok)">Node.js (Express)</span></div><div>Scans TCP réels: <span style="color:var(--ok)">✓ Oui</span></div><div>Offline tools: <span style="color:var(--ok)">✓ CIDR, Hash, Encodeur, Ports</span></div></div></div></div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ══ CONFIG SERVEUR ══
+// En local: http://localhost:3000
+// En production (Railway/Render): mettre l'URL de ton serveur déployé
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? ''  // même origine en local
+  : '';  // ← Remplacer par ton URL serveur ex: 'https://spiderscann.railway.app'
+
+// ══ NAV ══
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.bn').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const t=el||(typeof event!=='undefined'?event.currentTarget:null);
+  if(t)t.classList.add('active');
+  if(t&&t.classList.contains('bn'))t.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+// ══ THEME ══
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('ss-theme',t);document.getElementById('tdark').classList.toggle('active',t==='dark');document.getElementById('tlight').classList.toggle('active',t==='light');}
+function setAccent(a,el){document.documentElement.setAttribute('data-accent',a);localStorage.setItem('ss-accent',a);document.querySelectorAll('.acc-btn').forEach(b=>b.classList.toggle('active',b.dataset.acc===a));}
+function loadTheme(){const t=localStorage.getItem('ss-theme')||'dark';const a=localStorage.getItem('ss-accent')||'green';setTheme(t);document.documentElement.setAttribute('data-accent',a);document.querySelectorAll('.acc-btn').forEach(b=>b.classList.toggle('active',b.dataset.acc===a));}
+// ══ UTILS ══
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+function tlog(el,txt,cls=''){const s=document.createElement('span');if(cls)s.className=cls;s.textContent=txt+'\n';el.appendChild(s);el.parentElement.scrollTop=el.parentElement.scrollHeight;}
+function spinSVG(){return`<svg class="spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;}
+function mkTerm(el){el.innerHTML=`<div class="tbar"><div class="tdot" style="background:#ff5f57"></div><div class="tdot" style="background:#ffbd2e"></div><div class="tdot" style="background:#28c840"></div></div><div class="ti"></div>`;return el.querySelector('.ti');}
+// ══ API CALL ══
+async function api(path,opts={}){
+  const res=await fetch(API+path,{headers:{'Content-Type':'application/json'},...opts});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  return res.json();
+}
+// ══ INIT ══
+let myIP='';
+window.addEventListener('DOMContentLoaded',()=>{
+  loadTheme();buildPortGrid();buildGuide();initOffline();checkServer();
+});
+async function checkServer(){
+  const el=document.getElementById('srv-status');
+  try{
+    const t0=Date.now();
+    const d=await api('/api/geoip');
+    const ms=Date.now()-t0;
+    if(d.ok&&d.data){
+      const ip=d.data.ip||'—';
+      myIP=ip;
+      document.getElementById('sbip').textContent=ip;
+      document.getElementById('mip').textContent=ip;
+      document.getElementById('dip').textContent=ip;
+      document.getElementById('dco').textContent=(d.data.country_name||'')+(d.data.org?'\n'+d.data.org:'');
+      document.getElementById('dasn').textContent=d.data.asn||'—';
+      document.getElementById('dpg').textContent=ms+'ms';
+      document.getElementById('sbpg').textContent=ms+'ms';
+      document.getElementById('sbst').textContent='En ligne';
+      document.getElementById('sbd').classList.add('on');
+      document.getElementById('md').classList.add('on');
+      el.innerHTML='<span style="color:var(--ok)">✓ Serveur connecté</span>';
+    }
+  }catch{
+    el.innerHTML='<span style="color:var(--er)">✗ Serveur hors ligne — lancez: node server.js</span>';
+    document.getElementById('sbd').classList.add('off');
+    document.getElementById('md').classList.add('off');
+    document.getElementById('sbst').textContent='Hors ligne';
+  }
+}
+// ══ DASHBOARD DIAG ══
+async function runDiag(){
+  const btn=document.getElementById('dbtn');
+  const box=document.getElementById('dout');
+  btn.disabled=true;btn.innerHTML=spinSVG()+' En cours...';
+  const inner=mkTerm(box);
+  const L=(t,c)=>tlog(inner,t,c);
+  L('// SpiderScann — Diagnostic — '+new Date().toLocaleString(),'tdm');L('');
+  L('[1/4] IP & Géolocalisation...','tmt');
+  try{const d=await api('/api/geoip');if(d.ok){L('  ✓ IP: '+d.data.ip,'tok');L('  ✓ Pays: '+(d.data.country_name||'—'),'tok');L('  ✓ FAI: '+(d.data.org||'—'),'tok');}else throw 0;}catch{L('  ✗ Indisponible','ter');}
+  L('\n[2/4] DNS Resolution...','tmt');
+  try{const d=await api('/api/dns?host=google.com&type=A');if(d.results[0].ok){L('  ✓ DNS google.com → '+d.results[0].records[0].address,'tok');}else throw 0;}catch{L('  ✗ DNS indisponible','ter');}
+  L('\n[3/4] Port Check (80,443 google.com)...','tmt');
+  try{const d=await api('/api/ports',{method:'POST',body:JSON.stringify({host:'google.com',ports:[80,443]})});d.results.forEach(r=>L(`  ${r.open?'✓':'✗'} Port ${r.port}: ${r.open?'OUVERT':'FERMÉ'}`,r.open?'tok':'ter'));}catch{L('  ✗ Erreur','ter');}
+  L('\n[4/4] Ping latence...','tmt');
+  try{const d=await api('/api/ping?host=google.com&count=3');L(`  ✓ min=${d.stats.min}ms avg=${d.stats.avg}ms loss=${d.stats.loss}%`,'tok');}catch{L('  ✗ Erreur','ter');}
+  L('\n── Diagnostic terminé ──','tdm');
+  btn.disabled=false;btn.innerHTML='▶ Relancer';
+}
+// ══ HOST CHECKER ══
+let hcRes=[];
+async function runHC(){
+  const raw=document.getElementById('hch').value.trim();
+  if(!raw){alert('Entrez au moins un host.');return;}
+  const hosts=raw.split('\n').map(h=>h.trim()).filter(Boolean);
+  const proto=document.getElementById('hcpr').value;
+  const btn=document.getElementById('hcbtn');
+  btn.disabled=true;btn.innerHTML=spinSVG()+' Scan...';
+  document.getElementById('hcpw').style.display='block';
+  document.getElementById('hcpb').style.width='50%';
+  document.getElementById('hctb').innerHTML='';
+  document.getElementById('hcrc').style.display='block';
+  hcRes=[];
+  try{
+    const t0=Date.now();
+    const d=await api('/api/hosts',{method:'POST',body:JSON.stringify({hosts,proto})});
+    document.getElementById('hcpb').style.width='100%';
+    hcRes=d.results;
+    const tbody=document.getElementById('hctb');
+    d.results.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${r.host}</td><td><span class="bk bin">${r.proto.toUpperCase()}</span></td><td><span class="bk ${r.ok?'bok':'ber'}">${r.ok?'✓ En ligne':'✗ Hors ligne'}</span></td><td style="color:${r.ok?'var(--ok)':'var(--er)'}">${r.status||'—'}</td><td class="tdm">${r.ms}ms</td>`;
+      tbody.appendChild(tr);
+    });
+    const elapsed=((Date.now()-t0)/1000).toFixed(1);
+    const okN=d.results.filter(r=>r.ok).length;
+    document.getElementById('hcsm').innerHTML=`<div class="ss">Total: <span class="v">${d.results.length}</span></div><div class="ss" style="color:var(--ok)">✓ OK: <span class="v" style="color:var(--ok)">${okN}</span></div><div class="ss" style="color:var(--er)">✗ Echec: <span class="v" style="color:var(--er)">${d.results.length-okN}</span></div><div class="ss">Durée: <span class="v" style="font-size:13px">${elapsed}s</span></div>`;
+  }catch(e){alert('Erreur serveur: '+e.message);}
+  btn.disabled=false;btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Scanner';
+  document.getElementById('hcpw').style.display='none';
+}
+function copyHC(){navigator.clipboard.writeText(hcRes.filter(r=>r.ok).map(r=>`${r.proto}://${r.host}`).join('\n'));}
+function dlHC(){const b=new Blob([hcRes.map(r=>`${r.proto}://${r.host} | ${r.ok?'OK':'FAIL'} | status:${r.status||'—'} | ${r.ms}ms`).join('\n')],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='spiderscann_hosts.txt';a.click();}
+// ══ PORT SCANNER ══
+const PORTS=[{p:21,s:'FTP'},{p:22,s:'SSH'},{p:23,s:'Telnet'},{p:25,s:'SMTP'},{p:53,s:'DNS'},{p:80,s:'HTTP'},{p:110,s:'POP3'},{p:143,s:'IMAP'},{p:443,s:'HTTPS'},{p:445,s:'SMB'},{p:3306,s:'MySQL'},{p:3389,s:'RDP'},{p:5432,s:'PgSQL'},{p:6379,s:'Redis'},{p:8080,s:'HTTP+'},{p:8443,s:'HTTPS+'},{p:27017,s:'Mongo'},{p:11211,s:'Memcd'},{p:9200,s:'Elastic'},{p:5601,s:'Kibana'},{p:2375,s:'Docker'},{p:1433,s:'MSSQL'},{p:1521,s:'Oracle'},{p:5672,s:'AMQP'},{p:9092,s:'Kafka'},{p:6443,s:'K8s'},{p:2181,s:'ZK'},{p:8161,s:'ActiveMQ'},{p:4040,s:'Spark'},{p:7474,s:'Neo4j'}];
+const PSP={common:PORTS.map(p=>p.p),web:[80,443,8080,8443,8000,3000,5000,9000],db:[3306,5432,27017,6379,11211,1433,1521,9200],mail:[25,110,143,465,587,993,995]};
+function buildPortGrid(){const g=document.getElementById('psgr');PORTS.forEach(({p,s})=>{const d=document.createElement('div');d.className='pchip';d.dataset.port=p;d.innerHTML=`<span class="pn">${p}</span><span class="ps2">${s}</span>`;d.onclick=()=>d.classList.toggle('sel');g.appendChild(d);});}
+async function runPS(){
+  const host=document.getElementById('psh').value.trim();if(!host){alert('Entrez une cible.');return;}
+  const mode=document.getElementById('psm').value;let ports=[];
+  if(mode==='custom'){const raw=document.getElementById('pscp').value.trim();if(!raw){alert('Entrez des ports.');return;}for(const part of raw.split(',')){const t=part.trim();if(t.includes('-')){const[a,b]=t.split('-').map(Number);for(let p=a;p<=b&&ports.length<500;p++)ports.push(p);}else{const n=parseInt(t);if(!isNaN(n))ports.push(n);}}}
+  else{const sel=[...document.querySelectorAll('.pchip.sel')].map(e=>parseInt(e.dataset.port));ports=sel.length>0?sel:PSP[mode]||PSP.common;}
+  const btn=document.getElementById('psbtn');
+  btn.disabled=true;btn.innerHTML=spinSVG()+' Scanning...';
+  document.getElementById('pspw').style.display='block';document.getElementById('pspb').style.width='50%';
+  const out=document.getElementById('psout');out.innerHTML='';
+  document.getElementById('psrc').style.display='block';
+  document.getElementById('psrh').textContent=host;
+  try{
+    const d=await api('/api/ports',{method:'POST',body:JSON.stringify({host,ports})});
+    document.getElementById('pspb').style.width='100%';
+    const results=d.results.sort((a,b)=>a.port-b.port);
+    const openR=results.filter(r=>r.open);const closedR=results.filter(r=>!r.open);
+    if(openR.length){out.innerHTML+=`<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ok);margin-bottom:8px;">● Ports Ouverts (${openR.length})</div>`;openR.forEach(r=>{out.innerHTML+=`<div class="prow"><span class="pp">${r.port}</span><span class="bk bok">OUVERT</span><span class="psvc">${PORTS.find(p=>p.p===r.port)?.s||'?'}</span></div>`;});}
+    if(closedR.length){out.innerHTML+=`<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--tx3);margin:12px 0 8px;">● Ports Fermés (${closedR.length})</div>`;closedR.slice(0,50).forEach(r=>{out.innerHTML+=`<div class="prow"><span class="pp">${r.port}</span><span class="bk ber">FERMÉ</span><span class="psvc" style="color:var(--tx3)">${PORTS.find(p=>p.p===r.port)?.s||'?'}</span></div>`;});if(closedR.length>50)out.innerHTML+=`<div style="font-size:10px;color:var(--tx3);padding:7px 0;">...et ${closedR.length-50} autres</div>`;}
+    document.getElementById('pssm').innerHTML=`<div class="ss">Scannés: <span class="v">${ports.length}</span></div><div class="ss" style="color:var(--ok)">Ouverts: <span class="v" style="color:var(--ok)">${openR.length}</span></div><div class="ss" style="color:var(--er)">Fermés: <span class="v" style="color:var(--er)">${closedR.length}</span></div>`;
+  }catch(e){out.innerHTML=`<span class="ter">Erreur: ${e.message}</span>`;}
+  btn.disabled=false;btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Scanner';
+  document.getElementById('pspw').style.display='none';
+}
+function copyPS(){const lines=[...document.querySelectorAll('.prow')].map(r=>`${r.querySelector('.pp').textContent.trim().padEnd(8)} ${r.querySelector('.bk').textContent.trim().padEnd(8)} ${r.querySelector('.psvc').textContent.trim()}`);navigator.clipboard.writeText(lines.join('\n'));}
+// ══ DNS ══
+async function runDNS(){
+  const host=document.getElementById('dnsh').value.trim();const type=document.getElementById('dnst').value;
+  if(!host){alert('Entrez un domaine.');return;}
+  const card=document.getElementById('dnsrc');const out=document.getElementById('dnsout');
+  document.getElementById('dnsrh').textContent=host;card.style.display='block';out.innerHTML='<span class="tdm">Résolution DNS...</span>';
+  try{
+    const d=await api(`/api/dns?host=${encodeURIComponent(host)}&type=${type}`);
+    let html='';
+    d.results.forEach(r=>{
+      if(r.ok&&r.records){
+        const recs=Array.isArray(r.records)?r.records:[r.records];
+        recs.forEach(rec=>{
+          const val=typeof rec==='object'?JSON.stringify(rec):String(rec);
+          html+=`<div class="dr"><span class="dt">${r.type}</span><span class="dv">${val}</span></div>`;
+        });
+      }else{
+        html+=`<div class="dr"><span class="dt" style="background:rgba(239,68,68,.1);color:#ef4444;border-color:rgba(239,68,68,.25)">${r.type}</span><span class="dv tdm">Aucun enregistrement</span></div>`;
+      }
+    });
+    out.innerHTML=html||'<span class="tdm">Aucun résultat.</span>';
+  }catch(e){out.innerHTML=`<span class="ter">Erreur: ${e.message}</span>`;}
+}
+// ══ IP INFO ══
+async function runIP(){
+  const input=document.getElementById('ipinp').value.trim();
+  const card=document.getElementById('iprc');const out=document.getElementById('ipout');
+  card.style.display='block';out.innerHTML='<span class="tdm">Recherche...</span>';
+  try{
+    const d=await api(`/api/geoip?ip=${encodeURIComponent(input)}`);
+    if(!d.ok){out.innerHTML=`<span class="ter">Erreur: ${d.error}</span>`;return;}
+    const fields=[['IP',d.data.ip],['Version',`IPv${d.data.version}`],['Réseau',d.data.network],['Ville',d.data.city],['Région',`${d.data.region||''} (${d.data.region_code||''})`],['Pays',`${d.data.country_name||''} (${d.data.country_code||''})`],['Continent',d.data.continent_code],['Latitude',d.data.latitude],['Longitude',d.data.longitude],['Timezone',d.data.timezone],['UTC Offset',d.data.utc_offset],['FAI / Org',d.data.org],['ASN',d.data.asn],['Monnaie',d.data.currency_name],['Langues',d.data.languages]];
+    let html='';fields.forEach(([k,v])=>{if(v)html+=`<div class="wr"><span class="wk">${k}</span><span class="wv">${v}</span></div>`;});
+    if(d.data.latitude&&d.data.longitude)html+=`<div style="margin-top:12px;"><a href="https://maps.google.com/?q=${d.data.latitude},${d.data.longitude}" target="_blank" class="btn bg" style="font-size:11px;width:auto;">📍 Google Maps</a></div>`;
+    out.innerHTML=html;
+  }catch(e){out.innerHTML=`<span class="ter">Erreur: ${e.message}</span>`;}
+}
+// ══ SSL ══
+async function runSSL(){
+  const host=document.getElementById('sslh').value.trim().replace(/^https?:\/\//,'');
+  if(!host){alert('Entrez un domaine.');return;}
+  const card=document.getElementById('sslrc');const out=document.getElementById('sslout');
+  card.style.display='block';out.innerHTML='<span class="tdm">Analyse SSL...</span>';
+  try{
+    const d=await api(`/api/ssl?host=${encodeURIComponent(host)}`);
+    let html=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;"><div class="sr" style="border-color:${d.httpsOk?'var(--ok)':'var(--er)'}"><span class="sl" style="color:${d.httpsOk?'var(--ok)':'var(--er)'}">${d.httpsOk?'A':'F'}</span><span style="font-size:8px;color:var(--tx3);">SSL</span></div><div><div style="font-weight:700;font-size:15px;">${host}</div><div style="margin-top:5px;"><span class="bk ${d.httpsOk?'bok':'ber'}">${d.httpsOk?'✓ HTTPS Actif':'✗ HTTPS Inactif'}</span></div><div style="font-size:11px;color:var(--tx2);margin-top:4px;">Réponse: ${d.ms}ms</div></div></div><div class="sep"></div>`;
+    [['HTTPS Accessible',d.httpsOk,d.httpsOk?'Oui':'Non'],['Port 443',d.httpsOk,d.httpsOk?'Ouvert':'Fermé'],['TLS Chiffrement',d.httpsOk,d.httpsOk?'Actif':'N/A']].forEach(([k,ok,v])=>{html+=`<div class="wr"><span class="wk">${k}</span><span class="wv" style="color:${ok?'var(--ok)':'var(--er)'}">${v}</span></div>`;});
+    if(d.cert){html+=`<div class="sep"></div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--tx3);margin-bottom:10px;">Certificat (crt.sh)</div>`;const exp=d.cert.not_after&&new Date(d.cert.not_after)<new Date();[['Nom commun',d.cert.common_name],['Issuer',d.cert.issuer_name],['Valide depuis',d.cert.not_before?new Date(d.cert.not_before).toLocaleDateString('fr-FR'):'—'],['Expire le',d.cert.not_after?new Date(d.cert.not_after).toLocaleDateString('fr-FR')+(exp?' ⚠ EXPIRÉ':''):'—']].forEach(([k,v])=>{if(v)html+=`<div class="wr"><span class="wk">${k}</span><span class="wv">${v}</span></div>`;});}
+    html+=`<div class="sep"></div><div style="font-size:11px;color:var(--tx2);">Analyse complète: <a href="https://www.ssllabs.com/ssltest/analyze.html?d=${host}" target="_blank" style="color:var(--a)">SSL Labs ↗</a></div>`;
+    out.innerHTML=html;
+  }catch(e){out.innerHTML=`<span class="ter">Erreur: ${e.message}</span>`;}
+}
+// ══ PING ══
+async function runPing(){
+  const host=document.getElementById('pgh').value.trim();const count=parseInt(document.getElementById('pgc').value);
+  if(!host){alert('Entrez une cible.');return;}
+  const card=document.getElementById('pgrc');const box=document.getElementById('pgout');
+  card.style.display='block';
+  const inner=mkTerm(box);
+  const L=(t,c)=>tlog(inner,t,c);
+  L(`PING ${host} — ${count} requêtes`,'tac');L('─'.repeat(35),'tdm');
+  try{
+    const d=await api(`/api/ping?host=${encodeURIComponent(host)}&count=${count}`);
+    d.times.forEach(t=>{
+      if(t.ok)L(`seq=${String(t.seq).padStart(3,'0')} | ${host} | ${t.ms}ms`,t.ms<100?'tok':t.ms<300?'twn':'ter');
+      else L(`seq=${String(t.seq).padStart(3,'0')} | ${host} | timeout`,'ter');
+    });
+    L('─'.repeat(35),'tdm');
+    L(`min=${d.stats.min}ms max=${d.stats.max}ms avg=${d.stats.avg}ms loss=${d.stats.loss}%`,'tac');
+    document.getElementById('pgmn').textContent=d.stats.min+'ms';
+    document.getElementById('pgmx').textContent=d.stats.max+'ms';
+    document.getElementById('pgav').textContent=d.stats.avg+'ms';
+    document.getElementById('pgls').textContent=d.stats.loss+'%';
+  }catch(e){L('Erreur: '+e.message,'ter');}
+}
+// ══ WHOIS ══
+async function runWHOIS(){
+  const host=document.getElementById('whh').value.trim().replace(/^https?:\/\//,'');
+  if(!host){alert('Entrez un domaine.');return;}
+  const card=document.getElementById('whrc');const out=document.getElementById('whout');
+  document.getElementById('whrh').textContent=host;card.style.display='block';out.innerHTML='<span class="tdm">Requête WHOIS...</span>';
+  try{
+    const d=await api(`/api/whois?host=${encodeURIComponent(host)}`);
+    if(!d.ok)throw new Error(d.error);
+    const rd=d.data;
+    const getEv=(evts,a)=>{if(!evts)return'—';const e=evts.find(e=>e.eventAction===a);return e?new Date(e.eventDate).toLocaleDateString('fr-FR'):'—';};
+    const ns=(rd.nameservers||[]).map(n=>n.ldhName).join(', ')||'—';
+    const reg=rd.entities?.find(e=>e.roles?.includes('registrar'));
+    const regName=reg?.vcardArray?.[1]?.find(v=>v[0]==='fn')?.[3]||'—';
+    const fields=[['Domaine',rd.ldhName||host],['Statut',(rd.status||[]).join(', ')||'—'],['Registrar',regName],['Enregistrement',getEv(rd.events,'registration')],['Expiration',getEv(rd.events,'expiration')],['Dernière MAJ',getEv(rd.events,'last changed')],['DNSSEC',rd.secureDNS?.delegationSigned?'✓ Actif':'✗ Inactif'],['Serveurs DNS',ns]];
+    let html='';fields.forEach(([k,v])=>{html+=`<div class="wr"><span class="wk">${k}</span><span class="wv">${v}</span></div>`;});
+    html+=`<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;"><a href="https://who.is/whois/${host}" target="_blank" class="btn bg" style="font-size:11px;width:auto;">who.is ↗</a><a href="https://lookup.icann.org/en/lookup?name=${host}" target="_blank" class="btn bg" style="font-size:11px;width:auto;">ICANN ↗</a></div>`;
+    out.innerHTML=html;
+  }catch(e){out.innerHTML=`<div class="bk bwn" style="margin-bottom:10px;">⚠ RDAP indisponible</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><a href="https://who.is/whois/${host}" target="_blank" class="btn bp" style="font-size:11px;width:auto;">who.is ↗</a><a href="https://www.whois.com/whois/${host}" target="_blank" class="btn bg" style="font-size:11px;width:auto;">whois.com ↗</a></div>`;}
+}
+// ══ OFFLINE ══
+function initOffline(){calcCIDR();analyzeIP();runEncode();runHash();searchPR();}
+function calcCIDR(){
+  const ip=document.getElementById('cip').value.trim();const prefix=parseInt(document.getElementById('cpfx').value.trim());const out=document.getElementById('cidrout');
+  if(!ip||isNaN(prefix)||prefix<0||prefix>32){out.innerHTML='';return;}
+  const parts=ip.split('.').map(Number);if(parts.length!==4||parts.some(p=>isNaN(p)||p<0||p>255)){out.innerHTML='<span style="color:var(--er)">IP invalide</span>';return;}
+  const ipInt=parts.reduce((a,b)=>(a<<8)|b,0)>>>0;const mask=(0xFFFFFFFF<<(32-prefix))>>>0;const net=(ipInt&mask)>>>0;const bc=(net|(~mask>>>0))>>>0;const count=prefix<=30?Math.pow(2,32-prefix)-2:prefix===31?2:1;
+  const toIP=n=>[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join('.');const toM=m=>[(m>>>24)&255,(m>>>16)&255,(m>>>8)&255,m&255].join('.');
+  const f=[['Réseau',toIP(net)+'/'+prefix],['Masque',toM(mask)],['Broadcast',toIP(bc)],['1ère IP',toIP((net+1)>>>0)],['Dernière IP',toIP((bc-1)>>>0)],['Nb hôtes',count.toLocaleString()]];
+  out.innerHTML='<div style="margin-top:6px;">'+f.map(([k,v])=>`<div class="wr"><span class="wk">${k}</span><span class="wv" style="color:var(--a)">${v}</span></div>`).join('')+'</div>';
+}
+function analyzeIP(){
+  const val=document.getElementById('ipvinp').value.trim();const out=document.getElementById('ipvout');
+  if(!val){out.innerHTML='';return;}
+  const ip=val.split('/')[0];const parts=ip.split('.').map(Number);
+  if(parts.length!==4||parts.some(p=>isNaN(p)||p<0||p>255)){out.innerHTML='<span style="color:var(--er)">IP invalide</span>';return;}
+  let type='';
+  if(parts[0]===10||(parts[0]===172&&parts[1]>=16&&parts[1]<=31)||(parts[0]===192&&parts[1]===168))type='Privée (RFC1918)';
+  else if(parts[0]===127)type='Loopback';else if(parts[0]===169&&parts[1]===254)type='APIPA (lien-local)';
+  else if(parts[0]>=224&&parts[0]<=239)type='Multicast';else if(parts[0]===255)type='Broadcast';else type='Publique';
+  const cls=parts[0]<=127?'A':parts[0]<=191?'B':parts[0]<=223?'C':parts[0]<=239?'D':'E';
+  out.innerHTML=[['Adresse',ip],['Type',type],['Classe',cls],['Binaire',parts.map(p=>p.toString(2).padStart(8,'0')).join('.')],['Hex','0x'+parts.map(p=>p.toString(16).padStart(2,'0')).join('').toUpperCase()]].map(([k,v])=>`<div class="wr"><span class="wk">${k}</span><span class="wv" style="color:var(--a)">${v}</span></div>`).join('');
+}
+function runEncode(){
+  const mode=document.getElementById('encm').value;const input=document.getElementById('enci').value;const out=document.getElementById('encout');
+  if(!input){out.innerHTML='';return;}
+  let result='';
+  try{if(mode==='b64e')result=btoa(unescape(encodeURIComponent(input)));else if(mode==='b64d')result=decodeURIComponent(escape(atob(input)));else if(mode==='urle')result=encodeURIComponent(input);else if(mode==='urld')result=decodeURIComponent(input);else if(mode==='hex')result=[...input].map(c=>c.charCodeAt(0).toString(16).padStart(2,'0')).join(' ');else if(mode==='hexd')result=input.replace(/\s/g,'').match(/.{1,2}/g)?.map(h=>String.fromCharCode(parseInt(h,16))).join('')||'';}catch(e){result='Erreur: '+e.message;}
+  const safe=result.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  out.innerHTML=`<div style="background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;word-break:break-all;color:var(--a);margin-top:8px;">${safe}</div><button class="cp" style="margin-top:6px;" onclick="navigator.clipboard.writeText(${JSON.stringify(result)})">Copier</button>`;
+}
+async function runHash(){
+  const input=document.getElementById('hshi').value;const out=document.getElementById('hshout');
+  if(!input){out.innerHTML='';return;}
+  async function sha(a,d){const buf=await crypto.subtle.digest(a,new TextEncoder().encode(d));return[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+  try{const[h256,h512]=await Promise.all([sha('SHA-256',input),sha('SHA-512',input)]);out.innerHTML=[['SHA-256',h256],['SHA-512',h512]].map(([k,v])=>`<div class="wr"><span class="wk">${k}</span><span class="wv" style="font-size:10px;word-break:break-all;">${v}</span></div>`).join('');}catch(e){out.innerHTML='<span style="color:var(--er)">'+e.message+'</span>';}
+}
+const PREF=[{p:21,s:'FTP',d:'Transfert de fichiers'},{p:22,s:'SSH',d:'Shell sécurisé (chiffré)'},{p:23,s:'Telnet',d:'Accès distant non chiffré ⚠'},{p:25,s:'SMTP',d:'Envoi emails'},{p:53,s:'DNS',d:'Résolution DNS'},{p:80,s:'HTTP',d:'Web non chiffré'},{p:110,s:'POP3',d:'Réception emails'},{p:143,s:'IMAP',d:'Emails synchronisés'},{p:443,s:'HTTPS',d:'Web chiffré TLS'},{p:445,s:'SMB',d:'Partage fichiers Windows'},{p:465,s:'SMTPS',d:'SMTP chiffré SSL'},{p:587,s:'SMTP',d:'SMTP soumission'},{p:993,s:'IMAPS',d:'IMAP chiffré TLS'},{p:995,s:'POP3S',d:'POP3 chiffré TLS'},{p:1433,s:'MSSQL',d:'Microsoft SQL Server'},{p:1521,s:'Oracle',d:'Base Oracle'},{p:2375,s:'Docker',d:'Docker API non chiffré ⚠'},{p:2376,s:'Docker TLS',d:'Docker API chiffré'},{p:3306,s:'MySQL',d:'MySQL / MariaDB'},{p:3389,s:'RDP',d:'Bureau distant Windows ⚠'},{p:5432,s:'PostgreSQL',d:'Base PostgreSQL'},{p:5672,s:'AMQP',d:'RabbitMQ messaging'},{p:6379,s:'Redis',d:'Cache mémoire'},{p:6443,s:'K8s API',d:'API Kubernetes'},{p:8080,s:'HTTP Alt',d:'Web alternatif'},{p:8443,s:'HTTPS Alt',d:'HTTPS alternatif'},{p:9200,s:'Elasticsearch',d:'Moteur recherche'},{p:11211,s:'Memcached',d:'Cache mémoire'},{p:27017,s:'MongoDB',d:'Base NoSQL'}];
+function searchPR(){const q=document.getElementById('prsi').value.toLowerCase().trim();const out=document.getElementById('prout');const res=q?PREF.filter(p=>String(p.p).includes(q)||p.s.toLowerCase().includes(q)||p.d.toLowerCase().includes(q)):PREF;if(!res.length){out.innerHTML='<span class="tdm">Aucun résultat.</span>';return;}out.innerHTML='<div class="tw"><table><thead><tr><th>Port</th><th>Service</th><th>Description</th></tr></thead><tbody>'+res.slice(0,25).map(p=>`<tr><td>${p.p}</td><td><span class="bk bin">${p.s}</span></td><td>${p.d}</td></tr>`).join('')+'</tbody></table></div>';}
+// ══ GUIDE ══
+const GUIDE=[{icon:'🌐',title:'Host Checker',badge:'ONLINE — Serveur Node.js',bc:'bin',body:`<p>Vérifie la disponibilité HTTP/HTTPS de vos hosts via le serveur Node.js — <strong>vraies connexions TCP</strong>, pas de limitation CORS.</p><ul><li><strong>Utilisation:</strong> Un host par ligne, choisissez le protocole, cliquez Scanner.</li><li><strong>Code HTTP:</strong> Retourne le vrai code de statut (200, 301, 403, 500...).</li><li><strong>Temps:</strong> Temps de connexion TCP réel en ms.</li><li><strong>Export:</strong> Copier les OK ou télécharger en .txt.</li></ul>`},{icon:'🛡',title:'Port Scanner',badge:'ONLINE — TCP Réel',bc:'bin',body:`<p>Scan TCP réel via le module <code>net</code> de Node.js — <strong>aucune limitation navigateur</strong>.</p><ul><li><strong>Modes:</strong> Communs (30), Web, BDD, Mail, ou personnalisé.</li><li><strong>Personnalisé:</strong> <code>80,443,3000</code> ou plage <code>1-1000</code>.</li><li><strong>Précision:</strong> Connexion TCP socket réelle — résultats fiables.</li><li><strong>⚠ Usage responsable:</strong> Scannez uniquement vos propres infrastructures.</li></ul>`},{icon:'🔍',title:'DNS Lookup',badge:'ONLINE — DNS Natif',bc:'bin',body:`<p>Résolution DNS via le module <code>dns.promises</code> natif de Node.js.</p><ul><li><strong>Types:</strong> A, AAAA, MX, TXT, NS, CNAME, SOA, ALL.</li><li><strong>TTL:</strong> Durée de vie du cache en secondes.</li><li><strong>Avantage serveur:</strong> Utilise le résolveur DNS système — plus rapide et fiable.</li></ul>`},{icon:'📍',title:'IP / GeoIP',badge:'ONLINE — Serveur',bc:'bin',body:`<p>Géolocalise une IP via l'API ipapi.co, sans limitation CORS.</p><ul><li><strong>Infos:</strong> Ville, pays, timezone, FAI, ASN, coordonnées GPS.</li><li><strong>Votre IP:</strong> Laissez vide pour analyser votre propre IP.</li></ul>`},{icon:'🔒',title:'SSL / TLS',badge:'ONLINE — Serveur',bc:'bin',body:`<p>Vérifie HTTPS et analyse le certificat via crt.sh.</p><ul><li><strong>Score A/F:</strong> Basé sur disponibilité HTTPS réelle.</li><li><strong>Certificat:</strong> Issuer, dates de validité depuis crt.sh.</li></ul>`},{icon:'📡',title:'Ping & Latence',badge:'ONLINE — TCP Réel',bc:'bin',body:`<p>Mesure la latence via connexions HTTP réelles depuis le serveur Node.js.</p><ul><li><strong>Stats:</strong> Min, Max, Moyenne, pertes en %.</li><li><strong>Avantage:</strong> Pas de limitation ICMP — fonctionne sur tous les hosts.</li></ul>`},{icon:'👤',title:'WHOIS',badge:'ONLINE — RDAP',bc:'bin',body:`<p>Requête RDAP via le serveur — pas de blocage CORS.</p><ul><li><strong>Infos:</strong> Registrar, dates, DNS, DNSSEC.</li></ul>`},{icon:'🖥',title:'Calculateur CIDR',badge:'OFFLINE',bc:'bok',body:`<p>Calcule les paramètres réseau d'un sous-réseau. 100% local, aucun appel réseau.</p><ul><li>Réseau, masque, broadcast, 1ère/dernière IP, nb hôtes.</li></ul>`},{icon:'🔐',title:'Encodeur / Décodeur',badge:'OFFLINE',bc:'bok',body:`<p>Base64, URL, Hex — encode/décode localement dans le navigateur.</p>`},{icon:'#',title:'Hash SHA',badge:'OFFLINE',bc:'bok',body:`<p>SHA-256 et SHA-512 via WebCrypto. Le texte ne quitte jamais votre appareil.</p>`},{icon:'📖',title:'Référence Ports',badge:'OFFLINE',bc:'bok',body:`<p>Base de données locale de 29+ ports TCP avec description et risques de sécurité.</p>`}];
+function buildGuide(){const list=document.getElementById('guidelist');GUIDE.forEach((g,i)=>{const div=document.createElement('div');div.className='gc';div.innerHTML=`<div class="ghd" onclick="tglG(${i})"><div style="display:flex;align-items:center;gap:8px;">${g.icon} ${g.title}<span class="bk b${g.bc}" style="font-size:9px;">${g.badge}</span></div><svg class="garr" id="ga${i}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="gb" id="gb${i}">${g.body}</div>`;list.appendChild(div);});}
+function tglG(i){const b=document.getElementById('gb'+i);const a=document.getElementById('ga'+i);const o=b.classList.toggle('open');a.style.transform=o?'rotate(180deg)':'';}
+</script>
+</body>
+</html>
